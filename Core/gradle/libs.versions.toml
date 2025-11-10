@@ -1,22 +1,9 @@
 [versions]
-curator = "5.9.0"
-jedis = "6.0.0"
 hikarycp = "6.3.0"
-awssdk = "2.31.78"
 lombok = "1.18.30"
 minecraft = "1.20.1-R0.1-SNAPSHOT"
-mongodb = "5.6.1"
 
 [libraries]
-curator-framework = { group = "org.apache.curator", name = "curator-framework", version.ref = "curator" }
-curator-recipes = { group = "org.apache.curator", name = "curator-recipes", version.ref = "curator" }
-jedis = {group = "redis.clients", name = "jedis", version.ref = "jedis"}
 hikarycp = {group = "com.zaxxer", name = "HikariCP", version.ref = "hikarycp"}
-awssdk-s3 = {group = "software.amazon.awssdk", name ="s3", version.ref = "awssdk"}
-awssdk-core = {group = "software.amazon.awssdk", name ="core", version.ref = "awssdk"}
-awssdk-auth = {group = "software.amazon.awssdk", name ="auth", version.ref = "awssdk"}
-awssdk-regions = {group = "software.amazon.awssdk", name ="regions", version.ref = "awssdk"}
-awssdk-url = {group = "software.amazon.awssdk", name ="url-connection-client", version.ref = "awssdk"}
 lombok = {group = "org.projectlombok", name = "lombok", version.ref = "lombok"}
 minecraft-api = {group = "dev.folia", name = "folia-api", version.ref = "minecraft"}
-mongodb-driver = {group = "org.mongodb", name = "mongodb-driver-sync", version.ref = "mongodb"}
