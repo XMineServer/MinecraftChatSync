@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.hackaton.chatsync.ExternalUser;
 
 @Getter
@@ -21,7 +22,7 @@ public class ExternalGlobalChatMessageEvent extends ExternalChatMessageEvent {
     /**
      * Сообщение, отправленное от авторизованного пользователя извне
      * */
-    public ExternalGlobalChatMessageEvent(@NotNull OfflinePlayer player, @NotNull ExternalUser user, @NotNull String message) {
+    public ExternalGlobalChatMessageEvent(@Nullable OfflinePlayer player, @NotNull ExternalUser user, @NotNull String message) {
         super(player, user, message);
     }
 

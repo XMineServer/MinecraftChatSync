@@ -27,22 +27,22 @@ public class MinecraftMessagingService {
 
     private static final String GLOBAL_MESSAGE = "\\<<nickname>> <message>";
 
-    private static final String PRIVATE_TO_MESSAGE = "[<nickname> -> <red>you</red>] <message>";
-    private static final String PRIVATE_FROM_MESSAGE = "[<red>you</red> -> <nickname>] <message>";
+    private static final String TARGET_PRIVATE_MESSAGE = "[<nickname> -> <red>you</red>] <message>";
+    private static final String SENDER_PRIVATE_MESSAGE = "[<red>you</red> -> <nickname>] <message>";
 
     public void sendMsg(CommandSender sender, CommandSender target, String message) {
-        var messageFrom = MiniMessage.miniMessage().deserialize(
-                PRIVATE_FROM_MESSAGE,
+        var senderMessage = MiniMessage.miniMessage().deserialize(
+                SENDER_PRIVATE_MESSAGE,
                 Placeholder.unparsed("nickname", target.getName()),
                 Placeholder.unparsed("message", message)
         );
-        sender.sendMessage(messageFrom);
-        var messageTo = MiniMessage.miniMessage().deserialize(
-                PRIVATE_FROM_MESSAGE,
+        sender.sendMessage(senderMessage);
+        var targetMessage = MiniMessage.miniMessage().deserialize(
+                TARGET_PRIVATE_MESSAGE,
                 Placeholder.unparsed("nickname", sender.getName()),
                 Placeholder.unparsed("message", message)
         );
-        target.sendMessage(messageTo);
+        target.sendMessage(targetMessage);
     }
 
     //TODO: remove (sample)
@@ -83,7 +83,7 @@ public class MinecraftMessagingService {
     public void onExternalPrivateMessage(ExternalPrivateChatMessageEvent e) {
         var nickname = getExternalNickname(e);
         var message = MiniMessage.miniMessage().deserialize(
-                PRIVATE_TO_MESSAGE,
+                TARGET_PRIVATE_MESSAGE,
                 Placeholder.component("nickname", nickname),
                 Placeholder.unparsed("message", e.getMessage())
         );

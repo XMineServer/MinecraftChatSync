@@ -8,19 +8,20 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
-import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
-import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver;
+import io.papermc.paper.command.brigadier.MessageComponentSerializer;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.hackaton.chatsync.MinecraftMessagingService;
+import ru.hackaton.chatsync.target.MessageTarget;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Для понимания этого класса прочитать вот эту <a href="https://docs.papermc.io/paper/dev/command-api/basics/introduction/">документацию</a>
@@ -30,6 +31,9 @@ import java.util.List;
 @SuppressWarnings("UnstableApiUsage")
 public class MsgCommand {
 
+    private static final SimpleCommandExceptionType ERROR_NOT_INITIALIZED = new SimpleCommandExceptionType(
+            MessageComponentSerializer.message().serialize(net.kyori.adventure.text.Component.text("Plugin not initialized exception!"))
+    );
     private static final String COMMAND = "msg";
     private static final Collection<String> ALIASES = List.of("w", "tell", "m");
     private static final String PERMISSION = "hackaton.chatsync.msg";
@@ -44,6 +48,7 @@ public class MsgCommand {
     @PostConstruct
     public void init() {
         INSTANCE = this;
+        MessageTargetArgumentType.INSTANCE.minecraftMessagingService = minecraftMessagingService;
         plugin.getLifecycleManager().registerEventHandler(
                 LifecycleEvents.COMMANDS,
                 commands -> commands.registrar().register(createCommand(), ALIASES)
@@ -58,8 +63,7 @@ public class MsgCommand {
     }
 
     private static ArgumentBuilder<CommandSourceStack, ?> targetPlayerNode() {
-        //TODO: add custom argument type
-        return Commands.argument(USER_NAME_ARGUMENT, ArgumentTypes.player())
+        return Commands.argument(USER_NAME_ARGUMENT, MessageTargetArgumentType.INSTANCE)
                 .then(messageTextNode());
     }
 
@@ -70,18 +74,13 @@ public class MsgCommand {
 
     private static int executeMsg(CommandContext<CommandSourceStack> command) throws CommandSyntaxException {
         if (INSTANCE == null)
-            return Command.SINGLE_SUCCESS;
+            throw ERROR_NOT_INITIALIZED.create();
         var sender = command.getSource().getSender();
-        var target = command.getArgument(USER_NAME_ARGUMENT, PlayerSelectorArgumentResolver.class)
-                .resolve(command.getSource()).getFirst();
+        @SuppressWarnings("unchecked")
+        var targetFuture = (CompletableFuture<MessageTarget>) command.getArgument(USER_NAME_ARGUMENT, CompletableFuture.class);
         var message = command.getArgument(TEXT_ARGUMENT, String.class);
-        INSTANCE.executeMsg(sender, target, message);
-        //TODO: send private message
+        targetFuture.thenAccept((target) -> target.sendMessage(sender, message));
         return Command.SINGLE_SUCCESS;
-    }
-
-    private void executeMsg(CommandSender sender, CommandSender target, String message) {
-        minecraftMessagingService.sendMsg(sender, target, message);
     }
 
 

@@ -32,7 +32,7 @@ public abstract class ExternalChatMessageEvent extends Event {
     /**
      * Сообщение, отправленное от авторизованного пользователя извне
      * */
-    public ExternalChatMessageEvent(@NotNull OfflinePlayer player, @NotNull ExternalUser user, @NotNull String message) {
+    public ExternalChatMessageEvent(@Nullable OfflinePlayer player, @NotNull ExternalUser user, @NotNull String message) {
         super(true);
         this.externalPlayer = player;
         this.externalUser = user;
