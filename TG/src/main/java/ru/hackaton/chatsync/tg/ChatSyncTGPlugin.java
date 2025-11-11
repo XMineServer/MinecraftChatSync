@@ -8,19 +8,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class ChatSyncTGPlugin extends JavaPlugin {
 
     private static ChatSyncTGPlugin INSTANCE;
+    private BotService botService;
 
     public ChatSyncTGPlugin() {
         INSTANCE = this;
     }
 
-    private BotService botService;
-
     @Override
     public void onEnable() {
-
         saveDefaultConfig();
         String token = getConfig().getString("telegram.token");
         String username = getConfig().getString("telegram.username");
+
         botService = new BotService(token, username);
         try {
             botService.start();
@@ -28,7 +27,9 @@ public class ChatSyncTGPlugin extends JavaPlugin {
             getLogger().severe("Telegram bot failed to start: " + e.getMessage());
         }
 
-        SpigotBootstrap.run(this);
+        if (!isTestEnvironment()) {
+            SpigotBootstrap.run(this);
+        }
     }
 
     @Override
@@ -38,9 +39,11 @@ public class ChatSyncTGPlugin extends JavaPlugin {
         }
     }
 
+    private boolean isTestEnvironment() {
+        return "true".equals(System.getProperty("mockbukkit"));
+    }
+
     public static ChatSyncTGPlugin getInstance() {
         return INSTANCE;
     }
-
-
 }
