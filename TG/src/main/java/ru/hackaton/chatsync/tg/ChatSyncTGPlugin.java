@@ -13,13 +13,29 @@ public class ChatSyncTGPlugin extends JavaPlugin {
         INSTANCE = this;
     }
 
+    private BotService botService;
+
     @Override
     public void onEnable() {
+
+        saveDefaultConfig();
+        String token = getConfig().getString("telegram.token");
+        String username = getConfig().getString("telegram.username");
+        botService = new BotService(token, username);
+        try {
+            botService.start();
+        } catch (Exception e) {
+            getLogger().severe("Telegram bot failed to start: " + e.getMessage());
+        }
+
         SpigotBootstrap.run(this);
     }
 
     @Override
     public void onDisable() {
+        if (botService != null) {
+            botService.stop();
+        }
     }
 
     public static ChatSyncTGPlugin getInstance() {

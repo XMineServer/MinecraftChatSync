@@ -4,6 +4,12 @@ plugins {
     id("net.minecrell.plugin-yml.paper") version "0.6.0"
 }
 
+repositories {
+    mavenCentral()
+    maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://jitpack.io")
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
@@ -24,6 +30,9 @@ paper {
 dependencies {
     implementation("com.github.hakan-krgn.spigot-injection:injection-core:0.1.5.7")
     implementation("com.github.hakan-krgn.spigot-injection:injection-listener:0.1.5.7")
+
+    implementation("org.telegram:telegrambots:6.8.0")
+    implementation("org.telegram:telegrambots-abilities:6.8.0")
 
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
 
