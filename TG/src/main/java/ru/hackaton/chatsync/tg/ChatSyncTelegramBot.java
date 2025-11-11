@@ -18,7 +18,7 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
 
     private final String token;
     private final String username;
-    private final Plugin plugin = ChatSyncTGPlugin.getInstance();
+    private final Plugin plugin;
     private String globalChatId = "-1000000000000";
 
     @Override

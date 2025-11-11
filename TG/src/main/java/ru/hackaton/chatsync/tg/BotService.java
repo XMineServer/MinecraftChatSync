@@ -1,32 +1,61 @@
 package ru.hackaton.chatsync.tg;
 
-import lombok.Getter;
+import com.hakan.basicdi.annotations.Autowired;
+import com.hakan.basicdi.annotations.Component;
+import com.hakan.basicdi.annotations.PostConstruct;
+import com.hakan.spinjection.listener.annotations.EventListener;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.event.EventPriority;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.slf4j.Logger;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 
+@Component
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class BotService {
 
-    @Getter
-    private static BotService instance;
+    private static final PlainTextComponentSerializer PLAIN_TEXT_COMPONENT_SERIALIZER = PlainTextComponentSerializer.plainText();
 
-    private TelegramBotsApi api;
+    private final JavaPlugin plugin;
+    private final Logger logger;
     private ChatSyncTelegramBot bot;
 
-    public BotService(String token, String username) {
-        instance = this;
-        this.bot = new ChatSyncTelegramBot(token, username);
+    private TelegramBotsApi api;
+
+    @PostConstruct
+    public void start() {
+        try {
+            this.api = new TelegramBotsApi(DefaultBotSession.class);
+            this.bot = createBot();
+            api.registerBot(bot);
+            logger.info("Telegram bot started.");
+        } catch (Exception e) {
+            logger.error("Telegram bot failed to start: ", e);
+        }
     }
 
-    public void start() throws Exception {
-        this.api = new TelegramBotsApi(DefaultBotSession.class);
-        api.registerBot(bot);
-        System.out.println("[ChatSyncTG] Telegram bot started.");
+    private ChatSyncTelegramBot createBot() {
+        plugin.saveDefaultConfig();
+        var config = plugin.getConfig();
+        var token = config.getString("telegram.token");
+        var username = config.getString("telegram.username");
+        bot = new ChatSyncTelegramBot(token, username, plugin);
+        return bot;
+    }
+
+    @EventListener(priority = EventPriority.MONITOR)
+    public void onChatEvent(AsyncChatEvent e) {
+        var message = PLAIN_TEXT_COMPONENT_SERIALIZER.serialize(e.originalMessage());
+        //TODO: send message
     }
 
     public void stop() {
         bot.stopBot();
-        System.out.println("[ChatSyncTG] Telegram bot stopped.");
+        logger.info("Telegram bot stopped.");
     }
 
     public void sendToTelegram(String message) {
