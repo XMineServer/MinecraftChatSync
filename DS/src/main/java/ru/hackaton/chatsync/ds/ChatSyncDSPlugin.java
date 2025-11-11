@@ -8,7 +8,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class ChatSyncDSPlugin extends JavaPlugin {
 
     private static ChatSyncDSPlugin INSTANCE;
-    private BotService botService;
 
     public ChatSyncDSPlugin() {
         INSTANCE = this;
@@ -16,34 +15,13 @@ public class ChatSyncDSPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        saveDefaultConfig();
-        String token = getConfig().getString("discord.token");
-        String username = getConfig().getString("discord.username");
-
-        // TODO replace with global option
-        long guildId = getConfig().getLong("discord.guildId");
-
-        botService = new BotService(token, username, guildId);
-        try {
-            botService.start();
-        } catch (Exception e) {
-            getLogger().severe("Discord bot failed to start: " + e.getMessage());
-        }
-
-        if (!isTestEnvironment()) {
-            SpigotBootstrap.run(this);
-        }
+        SpigotBootstrap.run(this);
     }
 
     @Override
     public void onDisable() {
-        if (botService != null) {
-            botService.stop();
-        }
-    }
-
-    private boolean isTestEnvironment() {
-        return "true".equals(System.getProperty("mockbukkit"));
+        var botService = (BotService) SpigotBootstrap.of(this.getClass()).getEntity(BotService.class).getInstance();
+        botService.stop();
     }
 
     public static ChatSyncDSPlugin getInstance() {
