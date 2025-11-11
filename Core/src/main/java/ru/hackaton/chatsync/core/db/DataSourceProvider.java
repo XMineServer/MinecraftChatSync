@@ -1,19 +1,24 @@
 package ru.hackaton.chatsync.core.db;
 
+import com.hakan.basicdi.annotations.Provide;
+import com.hakan.spinjection.module.PluginModule;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.jetbrains.annotations.NotNull;
+import ru.hackaton.chatsync.ChatSyncPlugin;
+
 import javax.sql.DataSource;
 
-public final class DataSourceProvider {
+public final class DataSourceProvider extends PluginModule {
 
-    private final HikariDataSource dataSource;
+    private HikariDataSource dataSource;
 
-    public DataSourceProvider(@NotNull String url, @NotNull String user, @NotNull String password) {
+    private void createDatasource() {
+        var plugin = ChatSyncPlugin.getInstance();
+        var config = plugin.getConfig();
         HikariConfig cfg = new HikariConfig();
-        cfg.setJdbcUrl(url);
-        cfg.setUsername(user);
-        cfg.setPassword(password);
+        cfg.setJdbcUrl(config.getString("database.url"));
+        cfg.setUsername(config.getString("database.user"));
+        cfg.setPassword(config.getString("database.password"));
         cfg.setMaximumPoolSize(10);
         cfg.setMinimumIdle(2);
         cfg.setConnectionTimeout(10_000);
@@ -22,7 +27,11 @@ public final class DataSourceProvider {
         this.dataSource = new HikariDataSource(cfg);
     }
 
-    public DataSource get() {
+    @Provide
+    public DataSource dataSource() {
+        if (dataSource == null) {
+            createDatasource();
+        }
         return dataSource;
     }
 

@@ -1,23 +1,27 @@
 package ru.hackaton.chatsync.core;
 
+import com.hakan.basicdi.annotations.Autowired;
+import com.hakan.basicdi.annotations.Service;
+import com.hakan.spinjection.listener.annotations.EventListener;
+import lombok.RequiredArgsConstructor;
 import ru.hackaton.chatsync.api.ChatSyncPlatformAdapter;
-import ru.hackaton.chatsync.core.db.*;
+import ru.hackaton.chatsync.api.event.ExternalUserLinkEvent;
+import ru.hackaton.chatsync.core.db.GroupLinkRepository;
+import ru.hackaton.chatsync.core.db.UserLinkRepository;
 
 import java.sql.SQLException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Service
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public final class ChatSyncService {
-    private final DataSourceProvider dsp;
     private final UserLinkRepository userLinks;
     private final GroupLinkRepository groupLinks;
     private final Map<String, ChatSyncPlatformAdapter> adapters = new ConcurrentHashMap<>();
-
-    public ChatSyncService(DataSourceProvider dsp) {
-        this.dsp = dsp;
-        this.userLinks = new UserLinkRepository(dsp.get());
-        this.groupLinks = new GroupLinkRepository(dsp.get());
-    }
 
     public void registerAdapter(ChatSyncPlatformAdapter adapter) {
         adapters.put(adapter.getPlatformName(), adapter);
@@ -75,7 +79,9 @@ public final class ChatSyncService {
         }
     }
 
-    public void close() {
-        dsp.close();
+    @EventListener
+    public void onUserLink(ExternalUserLinkEvent e) throws SQLException {
+        userLinks.link(e.getPlatform(), e.getExternalId(), e.getPlayer().getUniqueId());
     }
+
 }

@@ -1,16 +1,18 @@
 package ru.hackaton.chatsync.core.db;
 
+import com.hakan.basicdi.annotations.Autowired;
+import com.hakan.basicdi.annotations.Component;
+import lombok.RequiredArgsConstructor;
+
 import java.sql.*;
 import java.util.*;
 import javax.sql.DataSource;
 
+@Component
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public final class GroupLinkRepository {
 
     private final DataSource ds;
-
-    public GroupLinkRepository(DataSource ds) {
-        this.ds = ds;
-    }
 
     public void link(String platform, List<String> path) throws SQLException {
         try (Connection c = ds.getConnection();

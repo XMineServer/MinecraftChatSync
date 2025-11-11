@@ -1,16 +1,20 @@
 package ru.hackaton.chatsync.core.db;
 
+import com.hakan.basicdi.annotations.Autowired;
+import com.hakan.basicdi.annotations.Component;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+
 import java.sql.*;
 import java.util.*;
 import javax.sql.DataSource;
 
+@Component
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public final class UserLinkRepository {
 
     private final DataSource ds;
-
-    public UserLinkRepository(DataSource ds) {
-        this.ds = ds;
-    }
+    private final Logger logger;
 
     public void link(String platform, String externalId, UUID playerUuid) throws SQLException {
         try (Connection c = ds.getConnection();
@@ -48,7 +52,7 @@ public final class UserLinkRepository {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Fail to find player", e);
         }
         return Optional.empty();
     }
