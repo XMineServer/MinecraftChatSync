@@ -53,7 +53,7 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
         if (forceSync || isTestEnvironment()) {
             fireEvent.run();
         } else {
-            Bukkit.getScheduler().runTask(plugin, fireEvent);
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, fireEvent);
         }
     }
 

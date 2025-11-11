@@ -1,13 +1,9 @@
+import net.minecrell.pluginyml.paper.PaperPluginDescription
+
 plugins {
     id("java")
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("net.minecrell.plugin-yml.paper") version "0.6.0"
-}
-
-repositories {
-    mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://jitpack.io")
 }
 
 java {
@@ -19,15 +15,23 @@ java {
 }
 
 paper {
-    main = "ru.hackaton.chatsync.ChatSyncPlugin"
+    main = "ru.hackaton.chatsync.tg.ChatSyncTGPlugin"
     apiVersion = "1.21"
     authors = listOf("sidey383")
-    prefix = project.name + "TG"
+    prefix = rootProject.name + "TG"
+    name = rootProject.name + "TG"
     foliaSupported = true
+    serverDependencies {
+        register(rootProject.name) {
+            required = true
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            joinClasspath = true
+        }
+    }
 }
 
 dependencies {
-    implementation(project(":Core"))
+    compileOnly(project(":Core"))
 
     implementation("com.github.hakan-krgn.spigot-injection:injection-core:0.1.5.7")
     implementation("com.github.hakan-krgn.spigot-injection:injection-listener:0.1.5.7")
@@ -35,7 +39,7 @@ dependencies {
     implementation("org.telegram:telegrambots:6.8.0")
     implementation("org.telegram:telegrambots-abilities:6.8.0")
 
-    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     testImplementation("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
     testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.98.0")
     testImplementation("org.mockito:mockito-core:5.6.0")
@@ -61,7 +65,7 @@ tasks {
     }
 
     shadowJar {
-        archiveFileName.set("${rootProject.name}-${project.version}-all.jar")
+        archiveFileName.set("${rootProject.name}-TG-${project.version}-all.jar")
         mergeServiceFiles()
     }
 
@@ -70,7 +74,7 @@ tasks {
     }
 
     jar {
-        archiveFileName.set("${rootProject.name}-${project.version}.jar")
+        archiveFileName.set("${rootProject.name}-TG-${project.version}.jar")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 }

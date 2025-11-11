@@ -16,7 +16,8 @@ paper {
     main = "ru.hackaton.chatsync.ChatSyncPlugin"
     apiVersion = "1.21"
     authors = listOf("sidey383")
-    prefix = project.name
+    prefix = rootProject.name
+    name = rootProject.name
     foliaSupported = true
 }
 
