@@ -10,18 +10,12 @@ import ru.hackaton.chatsync.event.ExternalGlobalChatMessageEvent;
 import ru.hackaton.chatsync.event.ExternalPrivateChatMessageEvent;
 
 @RequiredArgsConstructor
-public class ChatSyncDiscordBot extends DiscordLongPollingBot {
+public class ChatSyncDiscordBot {
 
     private final String token;
     private final String username;
     private final Plugin plugin = ChatSyncDSPlugin.getInstance();
     private String globalChatId = "-1000000000000";
-
-    @Override
-    public String getBotUsername() { return username; }
-
-    @Override
-    public String getBotToken() { return token; }
 
     /**
      * Обработка обновления Discord

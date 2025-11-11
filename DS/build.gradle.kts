@@ -36,8 +36,7 @@ dependencies {
     implementation("com.github.hakan-krgn.spigot-injection:injection-core:0.1.5.7")
     implementation("com.github.hakan-krgn.spigot-injection:injection-listener:0.1.5.7")
 
-    implementation("org.telegram:telegrambots:6.8.0")
-    implementation("org.telegram:telegrambots-abilities:6.8.0")
+    implementation("com.discord4j:discord4j-core:3.3.0")
 
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     testImplementation("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")

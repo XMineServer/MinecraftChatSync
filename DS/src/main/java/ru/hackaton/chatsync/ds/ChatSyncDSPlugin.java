@@ -4,7 +4,7 @@ import com.hakan.spinjection.SpigotBootstrap;
 import com.hakan.spinjection.annotations.Scanner;
 import org.bukkit.plugin.java.JavaPlugin;
 
-@Scanner("ru.hackaton.chatsync.th")
+@Scanner("ru.hackaton.chatsync.ds")
 public class ChatSyncDSPlugin extends JavaPlugin {
 
     private static ChatSyncDSPlugin INSTANCE;
@@ -20,7 +20,10 @@ public class ChatSyncDSPlugin extends JavaPlugin {
         String token = getConfig().getString("discord.token");
         String username = getConfig().getString("discord.username");
 
-        botService = new BotService(token, username);
+        // TODO replace with global option
+        long guildId = getConfig().getLong("discord.guildId");
+
+        botService = new BotService(token, username, guildId);
         try {
             botService.start();
         } catch (Exception e) {
