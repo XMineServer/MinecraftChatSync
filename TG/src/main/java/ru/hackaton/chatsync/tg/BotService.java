@@ -12,6 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+import ru.hackaton.chatsync.target.MessageTarget;
 
 
 @Component
@@ -61,4 +62,11 @@ public class BotService {
     public void sendToTelegram(String message) {
         bot.sendMessageToChannel(message);
     }
+
+    public MessageTarget createPrivateMessageTarget(String nickname) throws IllegalArgumentException {
+        // Сделать лямбду, которая реально будет отправлять сообщение в телеграмм
+        return (sender, message) ->
+                logger.info("Telegram message send {} say to {}: {}", sender.getName(), nickname, message);
+    }
+
 }
