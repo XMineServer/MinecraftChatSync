@@ -3,6 +3,7 @@ package ru.hackaton.chatsync.tg;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -121,9 +122,10 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
 
                     String code = userLinkingService.initiateLink(userId, "telegram");
 
+                    player.sendMessage("🔗 Ваш код подтверждения: " + code + "\nВведите в Telegram: /otp <код>");
+
                     sendPrivateMessage(chatId.toString(),
-                            "🔗 Ваш код подтверждения: " + code + "\nВведите /otp <код> чтобы завершить привязку.");
-                    player.sendMessage("✅ Код подтверждения отправлен в Telegram @" + tgUsername);
+                            "✅ Код для привязки аккаунта отправлен в Minecraft игроку " + playerName);
 
                 } catch (Exception e) {
                     sendPrivateMessage(chatId.toString(), "⚠️ Произошла ошибка при создании кода. Попробуйте позже.");
