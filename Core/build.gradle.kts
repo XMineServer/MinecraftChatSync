@@ -30,6 +30,13 @@ dependencies {
     implementation("com.github.hakan-krgn.spigot-injection:injection-core:0.1.5.7")
     implementation("com.github.hakan-krgn.spigot-injection:injection-listener:0.1.5.7")
 
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.0")
+    testImplementation("org.assertj:assertj-core:3.26.0")
+    testImplementation("org.mockito:mockito-core:5.14.0")
+    testImplementation("org.testcontainers:testcontainers:1.20.3")
+    testImplementation("org.testcontainers:junit-jupiter:1.20.3")
+    testImplementation("org.testcontainers:mysql:1.20.3")
+
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
 
     compileOnly("org.projectlombok:lombok:1.18.30")
@@ -56,4 +63,8 @@ tasks {
         archiveFileName.set("${rootProject.name}-${project.version}.jar")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
