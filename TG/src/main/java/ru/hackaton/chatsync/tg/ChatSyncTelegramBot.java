@@ -1,6 +1,5 @@
 package ru.hackaton.chatsync.tg;
 
-import com.hakan.basicdi.annotations.Autowired;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
@@ -19,9 +18,7 @@ import ru.hackaton.chatsync.event.ExternalPrivateChatMessageEvent;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 public class ChatSyncTelegramBot extends TelegramLongPollingBot {
@@ -30,9 +27,7 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
     private final String username;
     private final Plugin plugin;
 
-    @Autowired
     private final UserLinkRepository userLinkRepository;
-    @Autowired
     private final GroupLinkRepository groupLinkRepository;
 
     public void sendGlobalMessage(String message) {

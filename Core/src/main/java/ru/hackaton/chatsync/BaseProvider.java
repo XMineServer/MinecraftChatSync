@@ -12,6 +12,7 @@ public class BaseProvider extends PluginModule {
         return ChatSyncPlugin.getInstance();
     }
 
+    @Provide
     public Logger logger() {
         return ChatSyncPlugin.getInstance().getSLF4JLogger();
     }

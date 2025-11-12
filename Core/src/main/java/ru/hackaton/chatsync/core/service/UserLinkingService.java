@@ -2,7 +2,6 @@ package ru.hackaton.chatsync.core.service;
 
 import com.hakan.basicdi.annotations.Autowired;
 import com.hakan.basicdi.annotations.Service;
-import lombok.RequiredArgsConstructor;
 import ru.hackaton.chatsync.core.db.UserLinkRepository;
 
 import java.security.SecureRandom;
@@ -13,7 +12,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public final class UserLinkingService {
 
     private final UserLinkRepository userLinkRepository;
@@ -29,7 +27,8 @@ public final class UserLinkingService {
      */
     @Autowired
     public UserLinkingService(UserLinkRepository userLinkRepository) {
-        this(userLinkRepository, Duration.ofMinutes(5));
+        this.userLinkRepository = userLinkRepository;
+        this.linkTtlMillis = Duration.ofMinutes(5).toMillis();
     }
 
     public UserLinkingService(UserLinkRepository userLinkRepository, Duration ttl) {

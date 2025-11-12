@@ -2,7 +2,10 @@ package ru.hackaton.chatsync.tg;
 
 import com.hakan.basicdi.annotations.Provide;
 import com.hakan.spinjection.module.PluginModule;
+import org.bukkit.Bukkit;
 import org.slf4j.Logger;
+import ru.hackaton.chatsync.core.db.GroupLinkRepository;
+import ru.hackaton.chatsync.core.db.UserLinkRepository;
 
 @SuppressWarnings("unused")
 public class BaseProvider extends PluginModule {
@@ -15,6 +18,24 @@ public class BaseProvider extends PluginModule {
     @Provide
     public Logger logger() {
         return ChatSyncTGPlugin.getInstance().getSLF4JLogger();
+    }
+
+    @Provide
+    public UserLinkRepository userRepository() {
+        var repo = Bukkit.getServicesManager().load(UserLinkRepository.class);
+        if (repo == null) {
+            throw new IllegalStateException("Can't found UserLinkRepository");
+        }
+        return repo;
+    }
+
+    @Provide
+    public GroupLinkRepository groupRepository() {
+        var repo = Bukkit.getServicesManager().load(GroupLinkRepository.class);
+        if (repo == null) {
+            throw new IllegalStateException("Can't found GroupLinkRepository");
+        }
+        return repo;
     }
 
 }

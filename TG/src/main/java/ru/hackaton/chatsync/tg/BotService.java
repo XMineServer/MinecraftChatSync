@@ -29,10 +29,8 @@ public class BotService {
 
     private TelegramBotsApi api;
 
-    @Autowired
     private final UserLinkRepository userLinkRepository;
 
-    @Autowired
     private final GroupLinkRepository groupLinkRepository;
 
     @PostConstruct
