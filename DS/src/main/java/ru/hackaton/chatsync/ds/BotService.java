@@ -46,7 +46,8 @@ public class BotService {
 
         client = DiscordClient.create(token);
 
-        gateway = client.login().block(Duration.ofSeconds(10));
+//        gateway = client.login().block(Duration.ofSeconds(10));
+        gateway = client.login().block();
 
         // Register slash commands
         long applicationId = gateway.getRestClient().getApplicationId().block();
