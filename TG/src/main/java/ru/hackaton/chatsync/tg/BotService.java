@@ -50,8 +50,12 @@ public class BotService {
 
     @EventListener(priority = EventPriority.MONITOR)
     public void onChatEvent(AsyncChatEvent e) {
-        var message = PLAIN_TEXT_COMPONENT_SERIALIZER.serialize(e.originalMessage());
-        //TODO: send message
+        String message = PLAIN_TEXT_COMPONENT_SERIALIZER.serialize(e.originalMessage());
+        String playerName = e.getPlayer().getName();
+
+        String telegramMessage = String.format("[%s] %s", playerName, message);
+
+        bot.sendMessageToChannel(telegramMessage);
     }
 
     public void stop() {
@@ -64,9 +68,10 @@ public class BotService {
     }
 
     public MessageTarget createPrivateMessageTarget(String nickname) throws IllegalArgumentException {
-        // Сделать лямбду, которая реально будет отправлять сообщение в телеграмм
-        return (sender, message) ->
-                logger.info("Telegram message send {} say to {}: {}", sender.getName(), nickname, message);
+        return (sender, message) -> {
+            String formatted = String.format("[PRIVATE] %s → %s: %s", sender.getName(), nickname, message);
+            bot.sendPrivateMessage(nickname, formatted);
+        };
     }
 
 }
