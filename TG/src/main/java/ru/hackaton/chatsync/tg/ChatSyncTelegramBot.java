@@ -1,7 +1,6 @@
 package ru.hackaton.chatsync.tg;
 
 import lombok.RequiredArgsConstructor;
-import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -70,14 +69,19 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
     }
 
     @Override
-    public String getBotUsername() { return username; }
+    public String getBotUsername() {
+        return username;
+    }
 
     @Override
-    public String getBotToken() { return token; }
+    public String getBotToken() {
+        return token;
+    }
 
     /**
      * Обработка обновления Telegram
-     * @param update обновление Telegram
+     *
+     * @param update    обновление Telegram
      * @param forceSync если true — событие вызывается синхронно (для тестов)
      */
     public void handleUpdate(Update update, boolean forceSync) {
@@ -86,7 +90,7 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
         Message msg = update.getMessage();
         String tgName = msg.getFrom().getUserName();
         String text = msg.getText();
-        ExternalUser user = new ExternalUser(tgName, TextColor.color(0x54, 0xa8, 0xde), "telegram");
+        ExternalUser user = new ExternalUser(tgName, ChatSyncTGPlugin.color, "telegram");
         Long chatId = msg.getChatId();
 
         if (msg.getChat().isUserChat() && tgName != null) {
@@ -110,29 +114,21 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
 
 
     private void callGlobalEvent(ExternalUser user, String text) {
-       Bukkit.getPluginManager().callEvent(new ExternalGlobalChatMessageEvent(user, text));
+        Bukkit.getPluginManager().callEvent(new ExternalGlobalChatMessageEvent(user, text));
     }
 
     private void callPrivateEvent(String tgName, ExternalUser user, String text) {
         Player target = Bukkit.getPlayerExact(tgName);
         if (target == null) return;
-        Bukkit.getPluginManager().callEvent(new ExternalPrivateChatMessageEvent(target, user, text));
+        Bukkit.getPluginManager().callEvent(new ExternalPrivateChatMessageEvent(false ,target, user, text));
 
     }
 
 
-    public void sendPrivateMessage(String username, String message) {
+    public void sendPrivateMessage(String userId, String message) {
         try {
-            Optional<Integer> maybeUserId = userLinkRepository.findPlayerIdByExternal("telegram", username);
-            maybeUserId.ifPresent(userId -> {
-                String chatId = maybeUserId.get().toString();
-                try {
-                    execute(new SendMessage(chatId, message));
-                } catch (TelegramApiException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-        } catch (Exception e) {
+            execute(new SendMessage(userId, message));
+        } catch (TelegramApiException e) {
             e.printStackTrace();
         }
     }
@@ -148,5 +144,6 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
     }
 
 
-    public void stopBot() {}
+    public void stopBot() {
+    }
 }

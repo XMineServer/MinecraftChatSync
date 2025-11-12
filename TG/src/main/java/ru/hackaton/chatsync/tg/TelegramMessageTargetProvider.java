@@ -12,10 +12,14 @@ import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 import ru.hackaton.chatsync.command.MessageTargetArgumentType;
+import ru.hackaton.chatsync.core.db.LinkedUser;
+import ru.hackaton.chatsync.core.db.UserLinkRepository;
 import ru.hackaton.chatsync.target.ExternalMessageTargetProvider;
 import ru.hackaton.chatsync.target.MessageTarget;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -30,9 +34,9 @@ public class TelegramMessageTargetProvider implements ExternalMessageTargetProvi
             MessageComponentSerializer.message().serialize(Component.text("Wrong telegram user!"))
     );
 
-    private static final Collection<String> nicknames = List.of("sidey383", "slampy");
-
+    private final Logger logger;
     private final BotService botService;
+    private final UserLinkRepository userLinkRepository;
 
     @PostConstruct
     public void init() {
@@ -49,9 +53,9 @@ public class TelegramMessageTargetProvider implements ExternalMessageTargetProvi
     public @NotNull CompletableFuture<MessageTarget> parse(String argument, CommandSourceStack stack){
         return CompletableFuture.supplyAsync(() -> {
             String nickname = fromArgument(argument);
-            if (nicknames.contains(nickname)) {
+            try {
                 return botService.createPrivateMessageTarget(nickname);
-            } else {
+            } catch (Exception e) {
                 throw new CompletionException(ERROR_WRONG_USER.create());
             }
         });
@@ -60,9 +64,15 @@ public class TelegramMessageTargetProvider implements ExternalMessageTargetProvi
     @Override
     public @NotNull <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
         return CompletableFuture.supplyAsync(() -> {
-            nicknames.stream()
-                    .map(this::toArgument)
-                    .forEach(builder::suggest);
+            var val = fromArgument(builder.getRemaining());
+            try {
+                userLinkRepository.findByUsernameStartWith(val, "telegram").stream()
+                        .map(LinkedUser::getUsername)
+                        .map(this::toArgument)
+                        .forEach(builder::suggest);
+            } catch (SQLException e) {
+                logger.warn("suggestion failed", e);
+            }
             return builder.build();
         });
     }

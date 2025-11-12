@@ -55,6 +55,9 @@ dependencies {
 }
 
 tasks {
+
+    register("prepareKotlinBuildScriptModel")
+
     withType<JavaCompile> {
         options.encoding = "UTF-8"
         options.compilerArgs.add("-parameters")

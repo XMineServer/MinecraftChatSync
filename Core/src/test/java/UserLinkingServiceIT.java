@@ -1,4 +1,6 @@
 import org.junit.jupiter.api.*;
+import org.slf4j.Logger;
+import ru.hackaton.chatsync.core.db.MinecraftUserRepository;
 import ru.hackaton.chatsync.core.db.UserLinkRepository;
 import ru.hackaton.chatsync.core.service.UserLinkingService;
 
@@ -7,13 +9,15 @@ import java.time.Duration;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserLinkingServiceIT extends IntegrationTest {
 
+    private Logger logger;
     private UserLinkRepository userLinkRepository;
     private UserLinkingService userLinkingService;
+    private MinecraftUserRepository minecraftUserRepository;
 
     @BeforeAll
     void setupRepo() {
         userLinkRepository = new UserLinkRepository(dataSource);
-        userLinkingService = new UserLinkingService(userLinkRepository, Duration.ofSeconds(5));
+        userLinkingService = new UserLinkingService(logger, userLinkRepository, minecraftUserRepository, Duration.ofSeconds(5));
     }
 
     @Test
@@ -34,7 +38,7 @@ class UserLinkingServiceIT extends IntegrationTest {
 
     @Test
     void confirmLink_shouldFailIfCodeExpired() throws Exception {
-        var shortTtlService = new UserLinkingService(userLinkRepository, Duration.ofSeconds(1));
+        var shortTtlService = new UserLinkingService(logger, userLinkRepository, minecraftUserRepository, Duration.ofSeconds(1));
         String code = shortTtlService.initiateLink(1, "telegram");
 
         Thread.sleep(1200);

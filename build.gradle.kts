@@ -1,7 +1,3 @@
-plugins {
-    id("org.gradle.kotlin.kotlin-dsl") version "2.1.0" apply false
-}
-
 subprojects {
     apply(plugin = "java")
 

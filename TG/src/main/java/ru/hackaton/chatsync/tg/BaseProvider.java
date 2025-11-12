@@ -5,6 +5,7 @@ import com.hakan.spinjection.module.PluginModule;
 import org.bukkit.Bukkit;
 import org.slf4j.Logger;
 import ru.hackaton.chatsync.core.db.GroupLinkRepository;
+import ru.hackaton.chatsync.core.db.MinecraftUserRepository;
 import ru.hackaton.chatsync.core.db.UserLinkRepository;
 
 @SuppressWarnings("unused")
@@ -34,6 +35,15 @@ public class BaseProvider extends PluginModule {
         var repo = Bukkit.getServicesManager().load(GroupLinkRepository.class);
         if (repo == null) {
             throw new IllegalStateException("Can't found GroupLinkRepository");
+        }
+        return repo;
+    }
+
+    @Provide
+    public MinecraftUserRepository minecraftUserRepository() {
+        var repo = Bukkit.getServicesManager().load(MinecraftUserRepository.class);
+        if (repo == null) {
+            throw new IllegalStateException("Can't found MinecraftUserRepository");
         }
         return repo;
     }

@@ -7,14 +7,21 @@ import com.hakan.spinjection.listener.annotations.EventListener;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+import ru.hackaton.chatsync.ExternalUser;
 import ru.hackaton.chatsync.core.db.GroupLinkRepository;
+import ru.hackaton.chatsync.core.db.MinecraftUserRepository;
 import ru.hackaton.chatsync.core.db.UserLinkRepository;
+import ru.hackaton.chatsync.event.ExternalPrivateChatMessageEvent;
 import ru.hackaton.chatsync.target.MessageTarget;
+
+import java.sql.SQLException;
 
 
 @Component
@@ -30,7 +37,7 @@ public class BotService {
     private TelegramBotsApi api;
 
     private final UserLinkRepository userLinkRepository;
-
+    private final MinecraftUserRepository minecraftUserRepository;
     private final GroupLinkRepository groupLinkRepository;
 
     @PostConstruct
@@ -74,10 +81,21 @@ public class BotService {
     }
 
     public MessageTarget createPrivateMessageTarget(String nickname) throws IllegalArgumentException {
-        return (sender, message) -> {
-            String formatted = String.format("[PRIVATE] %s → %s: %s", sender.getName(), nickname, message);
-            bot.sendPrivateMessage(nickname, formatted);
-        };
+        try {
+            var user = minecraftUserRepository.findMinecraftUser(nickname);
+            var link = userLinkRepository.findByUser((int) user.getId(), "telegram")
+                    .orElseThrow(() -> new IllegalArgumentException("Can't found telegram user with id %d".formatted(user.getId())));
+            return (sender, message) -> {
+                String formatted = String.format("[PRIVATE] %s → %s: %s", sender.getName(), nickname, message);
+                if (sender instanceof Player player) {
+                    var e = new ExternalPrivateChatMessageEvent(true, player, new ExternalUser(nickname, ChatSyncTGPlugin.color, "telegram"), message);
+                    Bukkit.getPluginManager().callEvent(e);
+                }
+                bot.sendPrivateMessage(link.getExternalId(), formatted);
+            };
+        } catch (SQLException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
 }
