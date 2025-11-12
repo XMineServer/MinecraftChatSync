@@ -12,6 +12,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.slf4j.Logger;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+import ru.hackaton.chatsync.core.db.GroupLinkRepository;
+import ru.hackaton.chatsync.core.db.UserLinkRepository;
 import ru.hackaton.chatsync.target.MessageTarget;
 
 
@@ -26,6 +28,12 @@ public class BotService {
     private ChatSyncTelegramBot bot;
 
     private TelegramBotsApi api;
+
+    @Autowired
+    private final UserLinkRepository userLinkRepository;
+
+    @Autowired
+    private final GroupLinkRepository groupLinkRepository;
 
     @PostConstruct
     public void start() {
@@ -44,7 +52,7 @@ public class BotService {
         var config = plugin.getConfig();
         var token = config.getString("telegram.token");
         var username = config.getString("telegram.username");
-        bot = new ChatSyncTelegramBot(token, username, plugin);
+        bot = new ChatSyncTelegramBot(token, username, plugin, userLinkRepository, groupLinkRepository);
         return bot;
     }
 

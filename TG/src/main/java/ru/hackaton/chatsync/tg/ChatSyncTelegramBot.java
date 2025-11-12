@@ -1,5 +1,6 @@
 package ru.hackaton.chatsync.tg;
 
+import com.hakan.basicdi.annotations.Autowired;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
@@ -9,11 +10,17 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.hackaton.chatsync.ExternalUser;
+import ru.hackaton.chatsync.core.db.GroupLinkRepository;
+import ru.hackaton.chatsync.core.db.UserLinkRepository;
 import ru.hackaton.chatsync.event.ExternalGlobalChatMessageEvent;
 import ru.hackaton.chatsync.event.ExternalPrivateChatMessageEvent;
 
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
@@ -22,8 +29,50 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
     private final String token;
     private final String username;
     private final Plugin plugin;
-    private String globalChatId = "-1000000000000";
-    private final Map<String, Long> userChats = new ConcurrentHashMap<>();
+
+    @Autowired
+    private final UserLinkRepository userLinkRepository;
+    @Autowired
+    private final GroupLinkRepository groupLinkRepository;
+
+    public void sendGlobalMessage(String message) {
+        try {
+            var groupLinks = groupLinkRepository.findByPlatform("telegram");
+            for (var group : groupLinks) {
+                try {
+                    execute(new SendMessage(group.getContextPath(), message));
+                } catch (TelegramApiException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void cacheUserChat(String tgUsername, Long chatId) {
+        try {
+            Optional<Integer> existing = userLinkRepository.findPlayerIdByExternal("telegram", tgUsername);
+            if (existing.isEmpty()) {
+                //should be user_id = chat_id, external_id = username
+                userLinkRepository.link(chatId, "telegram", tgUsername);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void cacheGlobalChat(Long chatId) {
+        try {
+            boolean exists = groupLinkRepository.findByPlatform("telegram").stream()
+                    .anyMatch(gl -> gl.getContextPath().equals(chatId.toString()));
+            if (!exists) {
+                groupLinkRepository.link("telegram", List.of(chatId.toString()));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public String getBotUsername() { return username; }
@@ -40,13 +89,15 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
         if (!update.hasMessage() || update.getMessage().getText() == null) return;
 
         Message msg = update.getMessage();
-        System.out.println("Chat ID: " + msg.getChatId());
         String tgName = msg.getFrom().getUserName();
         String text = msg.getText();
         ExternalUser user = new ExternalUser(tgName, TextColor.color(0x54, 0xa8, 0xde), "telegram");
         Long chatId = msg.getChatId();
-        if (tgName != null) {
-            userChats.put(tgName, chatId);
+
+        if (msg.getChat().isUserChat() && tgName != null) {
+            cacheUserChat(tgName, chatId);
+        } else if (msg.getChat().isGroupChat() || msg.getChat().isSuperGroupChat()) {
+            cacheGlobalChat(chatId);
         }
 
         Runnable fireEvent;
@@ -59,10 +110,9 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
             return;
         }
 
-
-       Bukkit.getScheduler().runTaskAsynchronously(plugin, fireEvent);
-
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, fireEvent);
     }
+
 
     private void callGlobalEvent(ExternalUser user, String text) {
        Bukkit.getPluginManager().callEvent(new ExternalGlobalChatMessageEvent(user, text));
@@ -75,17 +125,18 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
 
     }
 
-    private Long findChatIdByUsername(String username) {
-        return userChats.get(username);
-    }
 
     public void sendPrivateMessage(String username, String message) {
         try {
-            //пока будет через локальный кеш, потом заменить на базу данных
-            Long chatId = findChatIdByUsername(username);
-            if (chatId != null) {
-                execute(new SendMessage(chatId.toString(), message));
-            }
+            Optional<Integer> maybeUserId = userLinkRepository.findPlayerIdByExternal("telegram", username);
+            maybeUserId.ifPresent(userId -> {
+                String chatId = maybeUserId.get().toString();
+                try {
+                    execute(new SendMessage(chatId, message));
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -98,7 +149,7 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
     }
 
     public void sendMessageToChannel(String message) {
-        try { execute(new SendMessage(globalChatId, message)); } catch (Exception ignored) {}
+        sendGlobalMessage(message);
     }
 
 

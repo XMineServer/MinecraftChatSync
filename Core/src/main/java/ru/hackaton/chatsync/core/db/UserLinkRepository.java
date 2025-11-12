@@ -16,11 +16,11 @@ public final class UserLinkRepository {
 
     private final DataSource ds;
 
-    public void link(int userId, String platform, String externalId) throws SQLException {
+    public void link(long userId, String platform, String externalId) throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement st = c.prepareStatement(
                      "INSERT IGNORE INTO user_links (user_id, platform, external_id, linked_at) VALUES (?, ?, ?, NOW())")) {
-            st.setInt(1, userId);
+            st.setLong(1, userId);
             st.setString(2, platform);
             st.setString(3, externalId);
             st.executeUpdate();
