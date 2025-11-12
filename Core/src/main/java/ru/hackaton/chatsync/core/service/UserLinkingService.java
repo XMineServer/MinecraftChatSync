@@ -1,7 +1,7 @@
 package ru.hackaton.chatsync.core.service;
 
 import com.hakan.basicdi.annotations.Autowired;
-import com.hakan.basicdi.annotations.Component;
+import com.hakan.basicdi.annotations.Service;
 import lombok.RequiredArgsConstructor;
 import ru.hackaton.chatsync.core.db.UserLinkRepository;
 
@@ -12,7 +12,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Component
+@Service
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public final class UserLinkingService {
 

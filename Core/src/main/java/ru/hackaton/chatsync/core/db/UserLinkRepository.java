@@ -1,7 +1,7 @@
 package ru.hackaton.chatsync.core.db;
 
 import com.hakan.basicdi.annotations.Autowired;
-import com.hakan.basicdi.annotations.Component;
+import com.hakan.basicdi.annotations.Service;
 import lombok.RequiredArgsConstructor;
 
 import javax.sql.DataSource;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Component
+@Service
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public final class UserLinkRepository {
 
