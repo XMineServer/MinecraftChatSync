@@ -1,9 +1,7 @@
 package ru.hackaton.chatsync;
 
 import com.hakan.spinjection.listener.annotations.EventListener;
-import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -45,29 +43,6 @@ public class MinecraftMessagingService {
         target.sendMessage(targetMessage);
     }
 
-    //TODO: remove (sample)
-    @EventListener(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onMessage(AsyncChatEvent e) {
-        String message = PLAIN_TEXT_COMPONENT_SERIALIZER.serialize(e.originalMessage());
-        var player = e.getPlayer();
-        var event1 = new ExternalGlobalChatMessageEvent(
-                player,
-                new ExternalUser("test1", TextColor.color(125, 0, 125), "test1"),
-                message
-        );
-        var event2 = new ExternalGlobalChatMessageEvent(
-                new ExternalUser("test2", TextColor.color(125, 125, 0), "test2"),
-                message
-        );
-        var event3 = new ExternalGlobalChatMessageEvent(
-                new ExternalUser(null, TextColor.color(0, 125, 125), "test3"),
-                message
-        );
-        Bukkit.getPluginManager().callEvent(event1);
-        Bukkit.getPluginManager().callEvent(event2);
-        Bukkit.getPluginManager().callEvent(event3);
-    }
-
     @EventListener(priority = EventPriority.MONITOR)
     public void onExternalGlobalMessage(ExternalGlobalChatMessageEvent e) {
         final Component nickname = getExternalNickname(e);
@@ -83,7 +58,7 @@ public class MinecraftMessagingService {
     public void onExternalPrivateMessage(ExternalPrivateChatMessageEvent e) {
         var nickname = getExternalNickname(e);
         var message = MiniMessage.miniMessage().deserialize(
-                TARGET_PRIVATE_MESSAGE,
+                e.isSendFromMinecraft() ? SENDER_PRIVATE_MESSAGE : TARGET_PRIVATE_MESSAGE,
                 Placeholder.component("nickname", nickname),
                 Placeholder.unparsed("message", e.getMessage())
         );

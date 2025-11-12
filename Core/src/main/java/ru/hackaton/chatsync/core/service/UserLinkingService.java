@@ -2,7 +2,10 @@ package ru.hackaton.chatsync.core.service;
 
 import com.hakan.basicdi.annotations.Autowired;
 import com.hakan.basicdi.annotations.Service;
-import lombok.RequiredArgsConstructor;
+import com.hakan.spinjection.listener.annotations.EventListener;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.slf4j.Logger;
+import ru.hackaton.chatsync.core.db.MinecraftUserRepository;
 import ru.hackaton.chatsync.core.db.UserLinkRepository;
 
 import java.security.SecureRandom;
@@ -13,10 +16,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public final class UserLinkingService {
 
+    private final Logger logger;
     private final UserLinkRepository userLinkRepository;
+    private final MinecraftUserRepository minecraftUserRepository;
     private final SecureRandom random = new SecureRandom();
 
     // код -> инфо о пользователе
@@ -28,13 +32,30 @@ public final class UserLinkingService {
      * Таймаут по умолчанию 5 минут
      */
     @Autowired
-    public UserLinkingService(UserLinkRepository userLinkRepository) {
-        this(userLinkRepository, Duration.ofMinutes(5));
+    public UserLinkingService(Logger logger, UserLinkRepository userLinkRepository, MinecraftUserRepository minecraftUserRepository) {
+        this.logger = logger;
+        this.userLinkRepository = userLinkRepository;
+        this.minecraftUserRepository = minecraftUserRepository;
+        this.linkTtlMillis = Duration.ofMinutes(5).toMillis();
     }
 
-    public UserLinkingService(UserLinkRepository userLinkRepository, Duration ttl) {
+    public UserLinkingService(Logger logger, UserLinkRepository userLinkRepository, MinecraftUserRepository minecraftUserRepository, Duration ttl) {
+        this.logger = logger;
         this.userLinkRepository = userLinkRepository;
+        this.minecraftUserRepository = minecraftUserRepository;
         this.linkTtlMillis = ttl.toMillis();
+    }
+
+    @EventListener
+    public void onJoin(AsyncPlayerPreLoginEvent e) {
+        try {
+            minecraftUserRepository.insertMinecraftUser(
+                    e.getUniqueId(),
+                    e.getPlayerProfile().getName()
+            );
+        } catch (SQLException ex) {
+            logger.error("Fail to insert minecraft user", ex);
+        }
     }
 
     /**
@@ -46,9 +67,6 @@ public final class UserLinkingService {
         String code = generateCode();
         long now = System.currentTimeMillis();
         pendingLinks.put(code, new PendingLink(userId, platform, now));
-
-        // TODO: отправить код в Telegram / Discord
-
         return code;
     }
 

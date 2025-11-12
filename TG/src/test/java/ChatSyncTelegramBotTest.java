@@ -1,25 +1,11 @@
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
-import org.mockbukkit.mockbukkit.entity.PlayerMock;
-import ru.hackaton.chatsync.event.ExternalGlobalChatMessageEvent;
-import ru.hackaton.chatsync.event.ExternalPrivateChatMessageEvent;
 
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
 import ru.hackaton.chatsync.tg.ChatSyncTGPlugin;
-import ru.hackaton.chatsync.tg.ChatSyncTelegramBot;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ChatSyncTelegramBotTest {

@@ -63,6 +63,7 @@ tasks {
         archiveFileName.set("${rootProject.name}-${project.version}.jar")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
+
 }
 
 tasks.test {

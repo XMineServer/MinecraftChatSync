@@ -40,11 +40,11 @@ dependencies {
     implementation("org.telegram:telegrambots-abilities:6.8.0")
 
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
-    testImplementation("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
+    testImplementation("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
     testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.98.0")
     testImplementation("org.mockito:mockito-core:5.6.0")
 
-    // JUnit 5 через BOM
+//     JUnit 5 через BOM
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter-api")
@@ -54,11 +54,10 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.30")
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
-
 tasks {
+
+    register("prepareKotlinBuildScriptModel")
+
     withType<JavaCompile> {
         options.encoding = "UTF-8"
         options.compilerArgs.add("-parameters")
@@ -77,4 +76,10 @@ tasks {
         archiveFileName.set("${rootProject.name}-TG-${project.version}.jar")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
+
+    test {
+        useJUnitPlatform()
+    }
+
 }
+

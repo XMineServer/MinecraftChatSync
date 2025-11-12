@@ -6,7 +6,7 @@ import java.time.Instant;
 @Value
 public class UserLink {
     int id;
-    int userId;
+    long userId;
     String platform;
     String externalId;
     Instant linkedAt;

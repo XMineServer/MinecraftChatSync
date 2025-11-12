@@ -1,7 +1,10 @@
 package ru.hackaton.chatsync;
 
+import com.hakan.basicdi.annotations.Service;
 import com.hakan.spinjection.SpigotBootstrap;
 import com.hakan.spinjection.annotations.Scanner;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.hackaton.chatsync.core.db.DataSourceProvider;
 
@@ -17,7 +20,14 @@ public class ChatSyncPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        SpigotBootstrap.run(this);
+        SpigotBootstrap.run(this).getEntities().stream()
+                .filter(e -> e.getType().isAnnotationPresent(Service.class))
+                .forEach(e -> registerService(e.getType(), e.getInstance()));
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> void registerService(Class<T> type, Object object) {
+        Bukkit.getServicesManager().register(type, (T) object, this, ServicePriority.Normal);
     }
 
     @Override

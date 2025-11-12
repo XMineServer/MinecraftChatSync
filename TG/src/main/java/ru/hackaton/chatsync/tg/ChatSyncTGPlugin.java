@@ -2,13 +2,14 @@ package ru.hackaton.chatsync.tg;
 
 import com.hakan.spinjection.SpigotBootstrap;
 import com.hakan.spinjection.annotations.Scanner;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
-@Scanner("ru.hackaton.chatsync.th")
+@Scanner("ru.hackaton.chatsync.tg")
 public class ChatSyncTGPlugin extends JavaPlugin {
 
     private static ChatSyncTGPlugin INSTANCE;
-    private BotService botService;
+    public static final TextColor color = TextColor.color(0x54, 0xa8, 0xde);
 
     public ChatSyncTGPlugin() {
         INSTANCE = this;
@@ -16,17 +17,6 @@ public class ChatSyncTGPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        saveDefaultConfig();
-        String token = getConfig().getString("telegram.token");
-        String username = getConfig().getString("telegram.username");
-
-        botService = new BotService(token, username);
-        try {
-            botService.start();
-        } catch (Exception e) {
-            getLogger().severe("Telegram bot failed to start: " + e.getMessage());
-        }
-
         if (!isTestEnvironment()) {
             SpigotBootstrap.run(this);
         }
@@ -34,9 +24,8 @@ public class ChatSyncTGPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (botService != null) {
-            botService.stop();
-        }
+        var botService = (BotService) SpigotBootstrap.of(this.getClass()).getEntity(BotService.class).getInstance();
+        botService.stop();
     }
 
     private boolean isTestEnvironment() {

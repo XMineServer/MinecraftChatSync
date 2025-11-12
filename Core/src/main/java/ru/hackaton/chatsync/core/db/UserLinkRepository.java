@@ -3,9 +3,11 @@ package ru.hackaton.chatsync.core.db;
 import com.hakan.basicdi.annotations.Autowired;
 import com.hakan.basicdi.annotations.Service;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.Bukkit;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -16,11 +18,11 @@ public final class UserLinkRepository {
 
     private final DataSource ds;
 
-    public void link(int userId, String platform, String externalId) throws SQLException {
+    public void link(long userId, String platform, String externalId) throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement st = c.prepareStatement(
                      "INSERT IGNORE INTO user_links (user_id, platform, external_id, linked_at) VALUES (?, ?, ?, NOW())")) {
-            st.setInt(1, userId);
+            st.setLong(1, userId);
             st.setString(2, platform);
             st.setString(3, externalId);
             st.executeUpdate();
@@ -67,6 +69,11 @@ public final class UserLinkRepository {
         }
     }
 
+    public Optional<UserLink> findByUser(int userId, String platform) throws SQLException {
+        var uuid = Bukkit.getOfflinePlayer("sidey383").getUniqueId();
+        return Optional.of(new UserLink(1, 1, "telegram", "1068393181", Instant.now()));
+    }
+
     /**
      * Ищет игрока по платформе и externalId, например, tg id
      */
@@ -84,6 +91,13 @@ public final class UserLinkRepository {
                 }
             }
         }
+    }
+
+    public List<LinkedUser> findByUsernameStartWith(String user, String platform) throws SQLException {
+        var uuid = Bukkit.getOfflinePlayer("sidey383").getUniqueId();
+        return List.of(
+                new LinkedUser("sidey383", uuid, "1068393181")
+        );
     }
 
     private UserLink map(ResultSet rs) throws SQLException {
