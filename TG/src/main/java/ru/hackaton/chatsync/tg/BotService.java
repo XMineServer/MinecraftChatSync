@@ -60,7 +60,7 @@ public class BotService {
         var config = plugin.getConfig();
         var token = config.getString("telegram.token");
         var username = config.getString("telegram.username");
-        bot = new ChatSyncTelegramBot(token, username, plugin, userLinkRepository, groupLinkRepository, userLinkingService);
+        bot = new ChatSyncTelegramBot(token, username, plugin, userLinkRepository, groupLinkRepository, userLinkingService, minecraftUserRepository);
         return bot;
     }
 
@@ -85,7 +85,8 @@ public class BotService {
 
     public MessageTarget createPrivateMessageTarget(String nickname) throws IllegalArgumentException {
         try {
-            var user = minecraftUserRepository.findMinecraftUser(nickname);
+            var user = minecraftUserRepository.findMinecraftUser(nickname)
+                    .orElseThrow(() -> new IllegalArgumentException("Can't found telegram user by nickname %s".formatted(nickname)));
             var link = userLinkRepository.findByUser((int) user.getId(), "telegram")
                     .orElseThrow(() -> new IllegalArgumentException("Can't found telegram user with id %d".formatted(user.getId())));
             return (sender, message) -> {

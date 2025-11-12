@@ -1,6 +1,7 @@
 package ru.hackaton.chatsync.tg;
 
 import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -11,6 +12,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.hackaton.chatsync.ExternalUser;
 import ru.hackaton.chatsync.core.db.GroupLinkRepository;
+import ru.hackaton.chatsync.core.db.MinecraftUser;
+import ru.hackaton.chatsync.core.db.MinecraftUserRepository;
 import ru.hackaton.chatsync.core.db.UserLinkRepository;
 import ru.hackaton.chatsync.event.ExternalGlobalChatMessageEvent;
 import ru.hackaton.chatsync.event.ExternalPrivateChatMessageEvent;
@@ -30,6 +33,7 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
     private final UserLinkRepository userLinkRepository;
     private final GroupLinkRepository groupLinkRepository;
     private final UserLinkingService userLinkingService;
+    private final MinecraftUserRepository minecraftUserRepository;
 
     public void sendGlobalMessage(String message) {
         try {
@@ -99,7 +103,7 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
 
             if (text.startsWith("/link ")) {
                 String playerName = text.substring(6).trim();
-                Player player = Bukkit.getPlayerExact(playerName);
+                Player player = Bukkit.getPlayer(playerName);
 
                 if (player == null) {
                     sendPrivateMessage(chatId.toString(), "❌ Игрок " + playerName + " не найден на сервере.");
@@ -107,13 +111,13 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
                 }
 
                 try {
-                    Optional<Integer> maybeUserId = userLinkRepository.findPlayerIdByExternal("minecraft", playerName);
-                    if (maybeUserId.isEmpty()) {
+                    Optional<MinecraftUser> maybeUser = minecraftUserRepository.findMinecraftUser(playerName);
+                    if (maybeUser.isEmpty()) {
                         sendPrivateMessage(chatId.toString(), "⚠️ Игрок не зарегистрирован в базе данных Minecraft.");
                         return;
                     }
 
-                    int userId = maybeUserId.get();
+                    long userId = maybeUser.get().getId();
 
                     String code = userLinkingService.initiateLink(userId, "telegram");
 

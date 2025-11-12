@@ -61,12 +61,12 @@ public final class UserLinkingService {
     /**
      * Этап 1. Сгенерировать код и отправить пользователю
      */
-    public String initiateLink(int userId, String platform) {
+    public String initiateLink(long userId, String platform) {
         cleanupExpired();
 
         String code = generateCode();
         long now = System.currentTimeMillis();
-        pendingLinks.put(code, new PendingLink(userId, platform, now));
+        pendingLinks.put(code, new PendingLink((int) userId, platform, now));
         return code;
     }
 

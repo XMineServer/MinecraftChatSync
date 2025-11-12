@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import ru.hackaton.chatsync.core.db.GroupLinkRepository;
 import ru.hackaton.chatsync.core.db.MinecraftUserRepository;
 import ru.hackaton.chatsync.core.db.UserLinkRepository;
+import ru.hackaton.chatsync.core.service.UserLinkingService;
 
 @SuppressWarnings("unused")
 public class BaseProvider extends PluginModule {
@@ -19,6 +20,15 @@ public class BaseProvider extends PluginModule {
     @Provide
     public Logger logger() {
         return ChatSyncTGPlugin.getInstance().getSLF4JLogger();
+    }
+
+    @Provide
+    public UserLinkingService userLinkingService() {
+        var repo = Bukkit.getServicesManager().load(UserLinkingService.class);
+        if (repo == null) {
+            throw new IllegalStateException("Can't found UserLinkingService");
+        }
+        return repo;
     }
 
     @Provide
