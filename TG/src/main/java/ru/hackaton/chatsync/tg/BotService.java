@@ -20,6 +20,7 @@ import ru.hackaton.chatsync.core.db.MinecraftUserRepository;
 import ru.hackaton.chatsync.core.db.UserLinkRepository;
 import ru.hackaton.chatsync.event.ExternalPrivateChatMessageEvent;
 import ru.hackaton.chatsync.target.MessageTarget;
+import ru.hackaton.chatsync.core.service.UserLinkingService;
 
 import java.sql.SQLException;
 
@@ -39,6 +40,8 @@ public class BotService {
     private final UserLinkRepository userLinkRepository;
     private final MinecraftUserRepository minecraftUserRepository;
     private final GroupLinkRepository groupLinkRepository;
+    private final UserLinkingService userLinkingService;
+
 
     @PostConstruct
     public void start() {
@@ -57,7 +60,7 @@ public class BotService {
         var config = plugin.getConfig();
         var token = config.getString("telegram.token");
         var username = config.getString("telegram.username");
-        bot = new ChatSyncTelegramBot(token, username, plugin, userLinkRepository, groupLinkRepository);
+        bot = new ChatSyncTelegramBot(token, username, plugin, userLinkRepository, groupLinkRepository, userLinkingService);
         return bot;
     }
 

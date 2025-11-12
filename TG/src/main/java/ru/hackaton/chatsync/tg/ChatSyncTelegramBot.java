@@ -14,6 +14,7 @@ import ru.hackaton.chatsync.core.db.GroupLinkRepository;
 import ru.hackaton.chatsync.core.db.UserLinkRepository;
 import ru.hackaton.chatsync.event.ExternalGlobalChatMessageEvent;
 import ru.hackaton.chatsync.event.ExternalPrivateChatMessageEvent;
+import ru.hackaton.chatsync.core.service.UserLinkingService;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -28,6 +29,7 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
 
     private final UserLinkRepository userLinkRepository;
     private final GroupLinkRepository groupLinkRepository;
+    private final UserLinkingService userLinkingService;
 
     public void sendGlobalMessage(String message) {
         try {
@@ -88,29 +90,79 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
         if (!update.hasMessage() || update.getMessage().getText() == null) return;
 
         Message msg = update.getMessage();
-        String tgName = msg.getFrom().getUserName();
+        String tgUsername = msg.getFrom().getUserName();
         String text = msg.getText();
-        ExternalUser user = new ExternalUser(tgName, ChatSyncTGPlugin.color, "telegram");
+        ExternalUser user = new ExternalUser(tgUsername, ChatSyncTGPlugin.color, "telegram");
         Long chatId = msg.getChatId();
 
-        if (msg.getChat().isUserChat() && tgName != null) {
-            cacheUserChat(tgName, chatId);
+        if (msg.getChat().isUserChat() && text.startsWith("/")) {
+
+            if (text.startsWith("/link ")) {
+                String playerName = text.substring(6).trim();
+                Player player = Bukkit.getPlayerExact(playerName);
+
+                if (player == null) {
+                    sendPrivateMessage(chatId.toString(), "❌ Игрок " + playerName + " не найден на сервере.");
+                    return;
+                }
+
+                try {
+                    Optional<Integer> maybeUserId = userLinkRepository.findPlayerIdByExternal("minecraft", playerName);
+                    if (maybeUserId.isEmpty()) {
+                        sendPrivateMessage(chatId.toString(), "⚠️ Игрок не зарегистрирован в базе данных Minecraft.");
+                        return;
+                    }
+
+                    int userId = maybeUserId.get();
+
+                    String code = userLinkingService.initiateLink(userId, "telegram");
+
+                    sendPrivateMessage(chatId.toString(),
+                            "🔗 Ваш код подтверждения: " + code + "\nВведите /otp <код> чтобы завершить привязку.");
+                    player.sendMessage("✅ Код подтверждения отправлен в Telegram @" + tgUsername);
+
+                } catch (Exception e) {
+                    sendPrivateMessage(chatId.toString(), "⚠️ Произошла ошибка при создании кода. Попробуйте позже.");
+                    e.printStackTrace();
+                }
+                return;
+            }
+
+            else if (text.startsWith("/otp ")) {
+                String code = text.substring(5).trim();
+                try {
+                    boolean success = userLinkingService.confirmLink(code, tgUsername);
+                    if (success) {
+                        sendPrivateMessage(chatId.toString(), "✅ Аккаунт успешно привязан!");
+                    } else {
+                        sendPrivateMessage(chatId.toString(), "❌ Неверный или просроченный код.");
+                    }
+                } catch (Exception e) {
+                    sendPrivateMessage(chatId.toString(), "⚠️ Произошла ошибка при подтверждении кода.");
+                    e.printStackTrace();
+                }
+                return;
+            }
+        }
+
+        if (msg.getChat().isUserChat() && tgUsername != null) {
+            cacheUserChat(tgUsername, chatId);
         } else if (msg.getChat().isGroupChat() || msg.getChat().isSuperGroupChat()) {
             cacheGlobalChat(chatId);
         }
 
         Runnable fireEvent;
-
         if (msg.getChat().isGroupChat() || msg.getChat().isSuperGroupChat()) {
             fireEvent = () -> callGlobalEvent(user, text);
         } else if (msg.getChat().isUserChat()) {
-            fireEvent = () -> callPrivateEvent(tgName, user, text);
+            fireEvent = () -> callPrivateEvent(tgUsername, user, text);
         } else {
             return;
         }
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, fireEvent);
     }
+
 
 
     private void callGlobalEvent(ExternalUser user, String text) {
