@@ -2,7 +2,6 @@ import org.junit.jupiter.api.*;
 import ru.hackaton.chatsync.core.db.MinecraftUser;
 import ru.hackaton.chatsync.core.db.MinecraftUserRepository;
 
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,33 +16,28 @@ class MinecraftUserRepositoryIT extends IntegrationTest {
     }
 
     @Test
-    void insertAndFindByUuidAndUsername_shouldWork() throws Exception {
+    void upsertAndFindByUuidAndUsername_shouldWork() throws Exception {
         UUID uuid = UUID.randomUUID();
 
-        // вставляем нового пользователя
-        repo.insertMinecraftUser(uuid, "charlie");
+        // создаём пользователя
+        repo.upsertMinecraftUser(uuid, "charlie");
 
-        // ищем по uuid
         Optional<MinecraftUser> byUuid = repo.findMinecraftUser(uuid);
         Assertions.assertTrue(byUuid.isPresent(), "пользователь должен находиться по uuid");
         Assertions.assertEquals(uuid, byUuid.get().getUuid());
         Assertions.assertEquals("charlie", byUuid.get().getUsername());
 
-        // ищем по нику
-        Optional<MinecraftUser> byName = repo.findMinecraftUser("charlie");
-        Assertions.assertTrue(byName.isPresent(), "пользователь должен находиться по нику");
+        // апдейтим ник для того же uuid
+        repo.upsertMinecraftUser(uuid, "charlie2");
+
+        Optional<MinecraftUser> updatedByUuid = repo.findMinecraftUser(uuid);
+        Assertions.assertTrue(updatedByUuid.isPresent(), "после апдейта пользователь всё ещё должен находиться");
+        Assertions.assertEquals("charlie2", updatedByUuid.get().getUsername());
+
+        // поиск по нику
+        Optional<MinecraftUser> byName = repo.findMinecraftUser("charlie2");
+        Assertions.assertTrue(byName.isPresent(), "пользователь должен находиться по обновлённому нику");
         Assertions.assertEquals(uuid, byName.get().getUuid());
-    }
-
-    @Test
-    void insertDuplicateUuid_shouldFailWithConstraintViolation() throws Exception {
-        UUID uuid = UUID.randomUUID();
-
-        repo.insertMinecraftUser(uuid, "charlie");
-        // вторая вставка с тем же uuid должна упасть
-        Assertions.assertThrows(SQLIntegrityConstraintViolationException.class, () -> {
-            repo.insertMinecraftUser(uuid, "charlie2");
-        });
     }
 
     @Test

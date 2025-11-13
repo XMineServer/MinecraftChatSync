@@ -58,8 +58,16 @@ public class MinecraftUserRepository {
         }
     }
 
-    public void insertMinecraftUser(UUID uuid, String username) throws SQLException {
-        String sql = "INSERT INTO users (uuid, username) VALUES (?, ?)";
+    /**
+     * Обеспечить наличие пользователя с ником username по uuid.
+     * Если с таким uuid уже есть, то поменять ему ник
+     */
+    public void upsertMinecraftUser(UUID uuid, String username) throws SQLException {
+        String sql = """
+            INSERT INTO users (uuid, username)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE username = VALUES(username)
+        """;
 
         try (Connection c = ds.getConnection();
              PreparedStatement st = c.prepareStatement(sql)) {
