@@ -1,3 +1,3 @@
 telegram:
-  token: "8181819886:AAH7qyyWX6hTnwFs51xo_Y1OaW6T1a1C8LM"
-  username: "ChatSyncBot"
+  token: token
+  username: botName

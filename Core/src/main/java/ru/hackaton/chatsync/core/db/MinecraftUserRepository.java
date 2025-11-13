@@ -19,6 +19,25 @@ public class MinecraftUserRepository {
 
     private final DataSource ds;
 
+    public Optional<MinecraftUser> findById(Long id) throws SQLException {
+        String sql = """
+            SELECT id, uuid, username, created_at
+            FROM users
+            WHERE id = ?
+        """;
+
+        try (Connection c = ds.getConnection();
+             PreparedStatement st = c.prepareStatement(sql)) {
+
+            st.setLong(1, id);
+
+            try (ResultSet rs = st.executeQuery()) {
+                if (!rs.next()) return Optional.empty();
+                return Optional.of(map(rs));
+            }
+        }
+    }
+
     public Optional<MinecraftUser> findMinecraftUser(UUID uuid) throws SQLException {
         String sql = """
             SELECT id, uuid, username, created_at

@@ -60,7 +60,7 @@ public class BotService {
         var config = plugin.getConfig();
         var token = config.getString("telegram.token");
         var username = config.getString("telegram.username");
-        bot = new ChatSyncTelegramBot(token, username, plugin, userLinkRepository, groupLinkRepository, userLinkingService, minecraftUserRepository);
+        bot = new ChatSyncTelegramBot(token, username, plugin, userLinkRepository, groupLinkRepository, userLinkingService, minecraftUserRepository, logger);
         return bot;
     }
 
