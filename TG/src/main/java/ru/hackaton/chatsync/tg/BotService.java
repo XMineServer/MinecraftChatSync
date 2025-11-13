@@ -64,7 +64,7 @@ public class BotService {
         return bot;
     }
 
-    @EventListener(priority = EventPriority.MONITOR)
+    @EventListener(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChatEvent(AsyncChatEvent e) {
         String message = PLAIN_TEXT_COMPONENT_SERIALIZER.serialize(e.originalMessage());
         String playerName = e.getPlayer().getName();
