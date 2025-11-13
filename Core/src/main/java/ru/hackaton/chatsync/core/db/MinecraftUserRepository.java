@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -16,13 +17,13 @@ public class MinecraftUserRepository {
 
     private final DataSource ds;
 
-    public MinecraftUser findMinecraftUser(UUID uuid) throws SQLException  {
-        return new MinecraftUser(1, uuid, "sidey383", Instant.now());
+    public Optional<MinecraftUser> findMinecraftUser(UUID uuid) throws SQLException  {
+        return Optional.of(new MinecraftUser(1, uuid, "sidey383", Instant.now()));
     }
 
-    public MinecraftUser findMinecraftUser(String nickname) throws SQLException {
+    public Optional<MinecraftUser> findMinecraftUser(String nickname) throws SQLException {
         var uuid = Bukkit.getOfflinePlayer("sidey383").getUniqueId();
-        return new MinecraftUser(1, uuid, "sidey383", Instant.now());
+        return Optional.of(new MinecraftUser(1, uuid, "sidey383", Instant.now()));
     }
 
     public void insertMinecraftUser(UUID uuid, String nickname) throws SQLException {
