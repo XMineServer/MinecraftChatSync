@@ -46,7 +46,7 @@ public class ChatSyncTelegramBot extends TelegramLongPollingBot {
 
     private void cacheUserChat(String tgUsername, Long chatId) {
         try {
-            Optional<Integer> existing = userLinkRepository.findPlayerIdByExternal("telegram", tgUsername);
+            Optional<Long> existing = userLinkRepository.findPlayerIdByExternal("telegram", tgUsername);
             if (existing.isEmpty()) {
                 //should be user_id = chat_id, external_id = username
                 userLinkRepository.link(chatId, "telegram", tgUsername);

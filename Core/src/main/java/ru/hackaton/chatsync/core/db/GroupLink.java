@@ -6,7 +6,7 @@ import java.time.Instant;
 
 @Value
 public class GroupLink {
-    int id;
+    long id;
     String platform;
     String contextPath;
     Instant linkedAt;

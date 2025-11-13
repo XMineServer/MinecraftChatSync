@@ -29,11 +29,11 @@ public final class UserLinkRepository {
         }
     }
 
-    public void delete(int userId, String platform) throws SQLException {
+    public void delete(long userId, String platform) throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement st = c.prepareStatement(
                      "DELETE FROM user_links WHERE user_id = ? AND platform = ?")) {
-            st.setInt(1, userId);
+            st.setLong(1, userId);
             st.setString(2, platform);
             st.executeUpdate();
         }
@@ -42,11 +42,11 @@ public final class UserLinkRepository {
     /**
      * привязан ли такой-то пользователь к платформе?
      */
-    public boolean exists(int userId, String platform) throws SQLException {
+    public boolean exists(long userId, String platform) throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement st = c.prepareStatement(
                      "SELECT 1 FROM user_links WHERE user_id = ? AND platform = ?")) {
-            st.setInt(1, userId);
+            st.setLong(1, userId);
             st.setString(2, platform);
             try (ResultSet rs = st.executeQuery()) {
                 return rs.next();
@@ -54,11 +54,11 @@ public final class UserLinkRepository {
         }
     }
 
-    public List<UserLink> findByUser(int userId) throws SQLException {
+    public List<UserLink> findByUser(long userId) throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement st = c.prepareStatement(
                      "SELECT id, user_id, platform, external_id, linked_at FROM user_links WHERE user_id = ?")) {
-            st.setInt(1, userId);
+            st.setLong(1, userId);
             try (ResultSet rs = st.executeQuery()) {
                 List<UserLink> result = new ArrayList<>();
                 while (rs.next()) {
@@ -69,15 +69,28 @@ public final class UserLinkRepository {
         }
     }
 
-    public Optional<UserLink> findByUser(int userId, String platform) throws SQLException {
-        var uuid = Bukkit.getOfflinePlayer("sidey383").getUniqueId();
-        return Optional.of(new UserLink(1, 1, "telegram", "1068393181", Instant.now()));
+    public Optional<UserLink> findByUser(long userId, String platform) throws SQLException {
+        try (Connection c = ds.getConnection();
+             PreparedStatement st = c.prepareStatement(
+                     "SELECT id, user_id, platform, external_id, linked_at " +
+                             "FROM user_links WHERE user_id = ? AND platform = ? LIMIT 1")) {
+            st.setLong(1, userId);
+            st.setString(2, platform);
+            try (ResultSet rs = st.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(map(rs));
+                } else {
+                    return Optional.empty();
+                }
+            }
+        }
     }
+
 
     /**
      * Ищет игрока по платформе и externalId, например, tg id
      */
-    public Optional<Integer> findPlayerIdByExternal(String platform, String externalId) throws SQLException {
+    public Optional<Long> findPlayerIdByExternal(String platform, String externalId) throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement st = c.prepareStatement(
                      "SELECT user_id FROM user_links WHERE platform = ? AND external_id = ?")) {
@@ -85,7 +98,7 @@ public final class UserLinkRepository {
             st.setString(2, externalId);
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(rs.getInt("user_id"));
+                    return Optional.of(rs.getLong("user_id"));
                 } else {
                     return Optional.empty();
                 }
@@ -94,16 +107,37 @@ public final class UserLinkRepository {
     }
 
     public List<LinkedUser> findByUsernameStartWith(String user, String platform) throws SQLException {
-        var uuid = Bukkit.getOfflinePlayer("sidey383").getUniqueId();
-        return List.of(
-                new LinkedUser("sidey383", uuid, "1068393181")
-        );
+        String like = user + "%";
+
+        String sql = """
+            SELECT u.username, u.uuid, ul.external_id
+            FROM users u
+            JOIN user_links ul ON u.id = ul.user_id
+            WHERE u.username LIKE ? AND ul.platform = ?
+            """;
+
+        try (Connection c = ds.getConnection();
+             PreparedStatement st = c.prepareStatement(sql)) {
+            st.setString(1, like);
+            st.setString(2, platform);
+            try (ResultSet rs = st.executeQuery()) {
+                List<LinkedUser> result = new ArrayList<>();
+                while (rs.next()) {
+                    String username = rs.getString("username");
+                    String uuidStr = rs.getString("uuid");
+                    String externalId = rs.getString("external_id");
+                    result.add(new LinkedUser(username, java.util.UUID.fromString(uuidStr), externalId));
+                }
+                return result;
+            }
+        }
     }
+
 
     private UserLink map(ResultSet rs) throws SQLException {
         return new UserLink(
-                rs.getInt("id"),
-                rs.getInt("user_id"),
+                rs.getLong("id"),
+                rs.getLong("user_id"),
                 rs.getString("platform"),
                 rs.getString("external_id"),
                 rs.getTimestamp("linked_at").toInstant()

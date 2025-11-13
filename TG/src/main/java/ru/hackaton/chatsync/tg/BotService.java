@@ -82,7 +82,8 @@ public class BotService {
 
     public MessageTarget createPrivateMessageTarget(String nickname) throws IllegalArgumentException {
         try {
-            var user = minecraftUserRepository.findMinecraftUser(nickname);
+            var user = minecraftUserRepository.findMinecraftUser(nickname)
+                    .orElseThrow(() -> new IllegalArgumentException("no user found by that nickname"));
             var link = userLinkRepository.findByUser((int) user.getId(), "telegram")
                     .orElseThrow(() -> new IllegalArgumentException("Can't found telegram user with id %d".formatted(user.getId())));
             return (sender, message) -> {
