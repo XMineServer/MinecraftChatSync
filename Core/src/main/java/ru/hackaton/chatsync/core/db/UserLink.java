@@ -5,7 +5,7 @@ import java.time.Instant;
 
 @Value
 public class UserLink {
-    int id;
+    long id;
     long userId;
     String platform;
     String externalId;

@@ -49,7 +49,7 @@ public final class UserLinkingService {
     @EventListener
     public void onJoin(AsyncPlayerPreLoginEvent e) {
         try {
-            minecraftUserRepository.insertMinecraftUser(
+            minecraftUserRepository.upsertMinecraftUser(
                     e.getUniqueId(),
                     e.getPlayerProfile().getName()
             );

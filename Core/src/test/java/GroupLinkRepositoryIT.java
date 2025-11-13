@@ -34,4 +34,21 @@ class GroupLinkRepositoryIT extends IntegrationTest {
         var tg = repo.findByPlatform("telegram");
         Assertions.assertTrue(tg.stream().allMatch(l -> l.getPlatform().equals("telegram")));
     }
+
+    @Test
+    void exists_shouldReturnFalseForMissingLink() throws Exception {
+        Assertions.assertFalse(
+                repo.exists("telegram", List.of("nonexistent", "path")),
+                "для несуществующего пути exists должен вернуть false"
+        );
+    }
+
+    @Test
+    void unlink_shouldRemoveLink() throws Exception {
+        repo.link("discord", List.of("temp"));
+        Assertions.assertTrue(repo.exists("discord", List.of("temp")));
+
+        repo.unlink("discord", List.of("temp"));
+        Assertions.assertFalse(repo.exists("discord", List.of("temp")));
+    }
 }

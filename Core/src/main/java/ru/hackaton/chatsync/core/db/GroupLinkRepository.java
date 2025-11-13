@@ -82,7 +82,7 @@ public final class GroupLinkRepository {
 
     private GroupLink map(ResultSet rs) throws SQLException {
         return new GroupLink(
-                rs.getInt("id"),
+                rs.getLong("id"),
                 rs.getString("platform"),
                 rs.getString("context_path"),
                 rs.getTimestamp("linked_at").toInstant()

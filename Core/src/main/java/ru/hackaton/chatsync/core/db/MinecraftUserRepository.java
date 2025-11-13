@@ -3,9 +3,11 @@ package ru.hackaton.chatsync.core.db;
 import com.hakan.basicdi.annotations.Autowired;
 import com.hakan.basicdi.annotations.Service;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Bukkit;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Optional;
@@ -17,17 +19,71 @@ public class MinecraftUserRepository {
 
     private final DataSource ds;
 
-    public Optional<MinecraftUser> findMinecraftUser(UUID uuid) throws SQLException  {
-        return Optional.of(new MinecraftUser(1, uuid, "sidey383", Instant.now()));
+    public Optional<MinecraftUser> findMinecraftUser(UUID uuid) throws SQLException {
+        String sql = """
+            SELECT id, uuid, username, created_at
+            FROM users
+            WHERE uuid = ?
+        """;
+
+        try (Connection c = ds.getConnection();
+             PreparedStatement st = c.prepareStatement(sql)) {
+
+            st.setString(1, uuid.toString());
+
+            try (ResultSet rs = st.executeQuery()) {
+                if (!rs.next()) return Optional.empty();
+                return Optional.of(map(rs));
+            }
+        }
     }
 
     public Optional<MinecraftUser> findMinecraftUser(String nickname) throws SQLException {
-        var uuid = Bukkit.getOfflinePlayer("sidey383").getUniqueId();
-        return Optional.of(new MinecraftUser(1, uuid, "sidey383", Instant.now()));
+        String sql = """
+            SELECT id, uuid, username, created_at
+            FROM users
+            WHERE username = ?
+            LIMIT 1
+        """;
+
+        try (Connection c = ds.getConnection();
+             PreparedStatement st = c.prepareStatement(sql)) {
+
+            st.setString(1, nickname);
+
+            try (ResultSet rs = st.executeQuery()) {
+                if (!rs.next()) return Optional.empty();
+                return Optional.of(map(rs));
+            }
+        }
     }
 
-    public void insertMinecraftUser(UUID uuid, String nickname) throws SQLException {
+    /**
+     * Обеспечить наличие пользователя с ником username по uuid.
+     * Если с таким uuid уже есть, то поменять ему ник
+     */
+    public void upsertMinecraftUser(UUID uuid, String username) throws SQLException {
+        String sql = """
+            INSERT INTO users (uuid, username)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE username = VALUES(username)
+        """;
 
+        try (Connection c = ds.getConnection();
+             PreparedStatement st = c.prepareStatement(sql)) {
+
+            st.setString(1, uuid.toString());
+            st.setString(2, username);
+            st.executeUpdate();
+        }
     }
 
+    private MinecraftUser map(ResultSet rs) throws SQLException {
+        long id = rs.getLong("id");
+        UUID uuid = UUID.fromString(rs.getString("uuid"));
+        String username = rs.getString("username");
+        Instant createdAt = rs.getTimestamp("created_at").toInstant();
+
+        return new MinecraftUser(id, uuid, username, createdAt);
+    }
 }

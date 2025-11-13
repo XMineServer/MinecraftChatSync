@@ -62,4 +62,20 @@ class UserLinkingServiceIT extends IntegrationTest {
         Assertions.assertTrue(userLinkingService.confirmLink(codeA, "A123"));
         Assertions.assertTrue(userLinkingService.confirmLink(codeB, "B123"));
     }
+
+    @Test
+    void confirmLink_shouldBeSingleUse() throws Exception {
+        String code = userLinkingService.initiateLink(3, "telegram");
+
+        Assertions.assertTrue(
+                userLinkingService.confirmLink(code, "99999"),
+                "первое подтверждение кода должно быть успешным"
+        );
+
+        Assertions.assertFalse(
+                userLinkingService.confirmLink(code, "another"),
+                "повторное использование того же кода должно быть невозможным"
+        );
+    }
+
 }
