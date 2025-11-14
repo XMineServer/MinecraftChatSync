@@ -82,3 +82,8 @@ ID чата должен начинаться с -1 и иметь вид `-10034
 - ```/msg <ник игрока> <сообщение>``` - отправляет внутриигровое сообщение игроку, который в данный момент находится на сервере.
 
 Личные сообщения из игры в телеграм приходят в диалог с ботом.
+
+## Материалы
+
+* [Презентация](https://drive.google.com/file/d/1OlQ0QtEHxwyohjppWXdJLd_Ambsz3-IE/view?usp=drive_link)
+* [Проморолик](https://drive.google.com/file/d/1TuqTLZkD9tEdnGOU9-ITQ1OK4gX2_h5f/view?usp=drive_link)
